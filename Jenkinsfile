@@ -1,31 +1,59 @@
-// 这是一个声明式 Pipeline 的基本结构
 pipeline {
-    // agent any 表示这个流水线可以在任何可用的 Jenkins agent 上运行
     agent any
 
-    // stages 是所有阶段的容器
+    // 1. 添加参数化构建
+    // 在这里定义可以在构建时传入的参数
+    parameters {
+        string(name: 'GREETING_NAME', defaultValue: 'World', description: '要问候的人的名字')
+    }
+
     stages {
-        // stage 是一个具体的阶段，比如 "构建" 或 "测试"
-        stage('Hello') {
-            // steps 是一个阶段里具体执行的步骤
+        // 我们可以在步骤中使用 params.参数名 来获取参数值
+        stage('Personalized Hello') {
             steps {
-                echo '你好, Jenkins Pipeline!'
+                echo "你好, ${params.GREETING_NAME}!"
             }
         }
-        stage('Build Simulation') {
+        stage('Checkout Code') {
             steps {
-                echo '正在模拟构建过程...'
-                // 使用 sh 命令执行 shell 脚本
-                sh 'sleep 3' // 模拟耗时操作
+                // 这是标准的从 Git 仓库拉取代码的步骤
+                checkout scm
+                echo '代码已从 GitHub 检出完毕!'
+            }
+        }
+        stage('Build') {
+            steps {
+                echo '正在构建...'
+                sh 'sleep 3'
                 echo '构建完成!'
             }
         }
-        stage('Test Simulation') {
+        stage('Test') {
             steps {
-                echo '正在模拟测试过程...'
-                sh 'sleep 2' // 模拟耗时操作
+                echo '正在测试...'
+                sh 'ls -l' // 打印出当前目录的文件列表
                 echo '测试完成!'
             }
+        }
+    }
+
+    // 2. 添加构建后操作
+    // post 块定义了流水线完成后执行的操作
+    post {
+        // a. 无论成功还是失败，总会执行
+        always {
+            echo '流水线执行完毕，开始清理工作空间...'
+            // cleanWs() 是一个内置函数，用于清理 Jenkins 的工作空间
+            cleanWs()
+        }
+        // b. 仅在成功时执行
+        success {
+            echo '太棒了! 本次构建成功!'
+        }
+        // c. 仅在失败时执行
+        failure {
+            echo '糟糕! 本次构建失败了!'
+            // 你可以在这里添加发送邮件或钉钉通知的步骤
         }
     }
 }
