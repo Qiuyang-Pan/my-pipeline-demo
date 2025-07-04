@@ -40,12 +40,6 @@ pipeline {
     // 2. 添加构建后操作
     // post 块定义了流水线完成后执行的操作
     post {
-        // a. 无论成功还是失败，总会执行
-        always {
-            echo '流水线执行完毕，开始清理工作空间...'
-            // cleanWs() 是一个内置函数，用于清理 Jenkins 的工作空间
-            cleanWs()
-        }
         // b. 仅在成功时执行
         success {
             echo '太棒了! 本次构建成功!'
